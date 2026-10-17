@@ -1,6 +1,6 @@
 ##
-# Who v2.1 by MC_8 - Carl M. Gregory <gregory@worldinter.net>
-#  This script will only work on eggdrop 1.5.1 (or greater) only.
+# Who v2.1.1 by MC_8 - Carl M. Gregory <mc8@purehype.net>
+#  This script will only work on eggdrop 1.5.1 or greater.
 #
 # My SVS Website - http://mc.purehype.net:81/
 ##
@@ -14,6 +14,11 @@
 ##
 # HISTORY
 ##
+# v2.1.1 (11.10.01)
+#  MC_8 - Fixed special character handeling when being dns'd after not
+#         being found by a server WHO.
+#  MC_8 - fudded - Script was reacting to wild card triggers (ie, a *).
+#
 # v2.1 (11.07.01)
 #  MC_8 - Updated SVS from v1.1 to v1.3.
 #  MC_8 - Recoded the whole script.  It was old and ugly.
@@ -136,8 +141,8 @@ set mc_who(lang:005) "Too many lines in the output, restrict your query."
 # unless you know what your doing.
 ##
 
-set mc_who(version) v2.1
-set mc_who(svs:script) "who 002001000000"
+set mc_who(version) v2.1.1
+set mc_who(svs:script) "who 002001001000"
 set mc_who(svs:server) "mc.purehype.net 8085"
 
 if {$numversion < "1050100"} {
@@ -164,7 +169,7 @@ proc mc:who:pubm {nick uhost hand chan arg} {
  if {(![mc:who:chanflag $chan mc.who]) ||
      ((![matchattr $hand $mc_who(flags) $chan]) && ($mc_who(flags) != "-|-")) ||
      (([matchattr $hand $mc_who(ign:flags) $chan]) && ($mc_who(ign:flags) != "")) ||
-     (![string match "* [string tolower $cmd] *" " $mc_who(trigger) "]) ||
+     ([lsearch -exact [string tolower $mc_who(trigger)] [string tolower $cmd]] == "-1") ||
      (![info exists who])} {return 0}
  lappend mc_who(:post:[string tolower $who]:) [list $nick $chan]
  switch -- $mc_who(meth) {
@@ -208,7 +213,7 @@ proc mc:who:raw {server num arg} {
    if {![info exists mc_who(:post:[string tolower $who]:)]} {
     set mc_who(:post:[string tolower $who]:) ""
    }
-   if {![info exists mc_who(:found:)]} {dnslookup $who mc:who:dnslookup $who} \
+   if {![info exists mc_who(:found:)]} {dnslookup [list $who] mc:who:dnslookup [list $who]} \
    else {mc:who:display $who}
   }
  }; return 0

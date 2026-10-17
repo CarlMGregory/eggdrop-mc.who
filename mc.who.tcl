@@ -1,6 +1,6 @@
 ##
-# Who v2.1.1 by MC_8 - Carl M. Gregory <mc8@purehype.net>
-#  This script will only work on eggdrop 1.5.1 or greater.
+# Who v2.1.2 by MC_8 - Carl M. Gregory <mc8@purehype.net>
+#  This script will only work on eggdrop 1.5.5 or greater.
 #
 # My SVS Website - http://mc.purehype.net:81/
 ##
@@ -14,6 +14,9 @@
 ##
 # HISTORY
 ##
+# v2.1.2 (11.17.01)
+#  MC_8 - Updated SVS from v1.3 to v2.0.
+#
 # v2.1.1 (11.10.01)
 #  MC_8 - Fixed special character handeling when being dns'd after not
 #         being found by a server WHO.
@@ -93,7 +96,7 @@ set mc_who(limit) 4
 set mc_who(meth) 0
 
 
-## MC SVS (Script Version Service) v1.3 ##
+## MC SVS (Script Version Service) v2.0 ##
 # Do you want the bot to connection to MC_8's SVS to see if there are newer versions
 # of this script avilable?  It will only tell you -- It's up to you to get the newest
 # version (I decided not to auto update the code, there may be new features in the
@@ -104,8 +107,8 @@ set mc_who(svs:enabled) 1
 # Once a day the script will check with the SVS -- this specifies when
 # that should happen.  The setting should be the hour (military).
 # examples:
-#  set mc_who(svs:check) 0  ;#This is at Midnight
-#  set mc_who(svs:check) 5  ;#This is at 5am
+#  set mc_who(svs:check) 0   ;#This is at Midnight
+#  set mc_who(svs:check) 5   ;#This is at 5am
 #  set mc_who(svs:check) 13  ;#This is at 1pm
 #  set mc_who(svs:check) 23  ;#This is at 11pm
 set mc_who(svs:check) 3
@@ -121,6 +124,7 @@ set mc_who(svs:notify) "MC_8"
 #  0 = Tell me about all version, even beta versions.
 #  1 = Just tell me about new stable versions.
 set mc_who(svs:stableonly) 0
+
 
 
 ## Language
@@ -141,16 +145,23 @@ set mc_who(lang:005) "Too many lines in the output, restrict your query."
 # unless you know what your doing.
 ##
 
-set mc_who(version) v2.1.1
-set mc_who(svs:script) "who 002001001000"
-set mc_who(svs:server) "mc.purehype.net 8085"
+set mc_who(script)      "Who"
+set mc_who(version)     "v2.1.2"
+set mc_who(svs:script)  "who"
+set mc_who(svs:version) "002001002000"
+set mc_who(svs:server)  "mc.purehype.net"
+set mc_who(svs:port)    "81"
+set mc_who(svs:get)     "/"
+set mc_who(svs:query)   "svs=$mc_who(svs:script)&version=$mc_who(svs:version)"
 
-if {$numversion < "1050100"} {
- putlog "Who $mc_who(version) by MC_8 is for eggdrop 1.5.1 (or greater) only."
- putlog "Who $mc_who(version) will not work with eggdrop $version."
- putlog "Who $mc_who(version) not loaded."
+if {$numversion < "1050500"} {
+ putlog "$mc_who(script) $mc_who(version) by MC_8 will only work on eggdrop 1.5.5 or greater."
+ putlog "$mc_who(script) $mc_who(version)  will not work with eggdrop $version."
+ putlog "$mc_who(script) $mc_who(version)  not loaded."
  return 1
-}; setudef flag mc.who
+}
+
+setudef flag mc.who
 
 set temp 0
 foreach mod [modules] {if {[lindex $mod 0] == "dns"} {set temp 1 ; break}}
@@ -158,7 +169,7 @@ if {!$temp} {loadmodule dns}
 set temp 0
 foreach mod [modules] {if {[lindex $mod 0] == "dns"} {set temp 1 ; break}}
 if {!$temp} {
- putlog "Who $mc_who(version) by MC_8 could not be loaded:  DNS module will not load."
+ putlog "$mc_who(script) $mc_who(version) by MC_8 could not be loaded:  DNS module will not load."
  return 1
 }
 
@@ -308,70 +319,90 @@ proc mc:who:replace {string subs} {
  };return $string
 }
 
-## SVS v1.3
-if {![info exists mc_who(svs:enabled)]} {set mc_who(svs:enabled) 0}
-if {($mc_who(svs:enabled) != "0") && ($mc_who(svs:enabled) != "1")} {set mc_who(svs:enabled) 0}
-if {![info exists mc_who(svs:check)]} {set mc_who(svs:check) 0}
-if {([catch {expr $mc_who(svs:check)+1}]) || (!$mc_who(svs:check))} {
- set mc_who(svs:check) 0
-}
+## SVS v2.0
+if {(![info exists mc_who(svs:enabled)]) ||
+    (![regexp -- {^(0|1)$} $mc_who(svs:enabled)])} {set mc_who(svs:enabled) 0}
+if {(![info exists mc_who(svs:check)]) ||
+    ([regexp -- {[^0-9]} $mc_who(svs:check)])} {set mc_who(svs:check) 0}
 if {![info exists mc_who(svs:notify)]} {set mc_who(svs:notify) $owner}
-if {![info exists mc_who(svs:stableonly)]} {set mc_who(svs:stableonly) 0}
-if {($mc_who(svs:stableonly) != "0") && ($mc_who(svs:stableonly) != "1")} {
- set mc_who(svs:stableonly) 0
+if {(![info exists mc_who(svs:stableonly)]) ||
+    (![regexp -- {^(0|1)$} $mc_who(svs:stableonly)])} {set mc_who(svs:stableonly) 0}
+foreach bind [binds mc:who:svs:time] {
+ unbind [lindex $bind 0] [lindex $bind 1] [lindex $bind 2] [lindex $bind 4]
 }
+foreach command [info commands mc:who:svs:time] {rename $command ""}
 if {$mc_who(svs:enabled)} {
  if {($mc_who(svs:check) > "23") || ($mc_who(svs:check) < "0")} {set mc_who(svs:check) 00}
  if {[string length $mc_who(svs:check)] == "1"} {set mc_who(svs:check) 0$mc_who(svs:check)}
- if {$mc_who(svs:stableonly)} {
-  set mc_who(svs:script) [string range $mc_who(svs:script) 0 [expr [string length $mc_who(svs:script)]-4]]999
- }
- catch {unbind time - "00 $mc_who(svs:oldcheck) * * *" mc:who:svs:time}
- set mc_who(svs:oldcheck) $mc_who(svs:check)
- bind time - "00 $mc_who(svs:check) * * *" mc:who:svs:time
- proc mc:who:svs:time {min hour day month year} {
+ bind time - "00 $mc_who(svs:check) *" mc:who:svs:time
+ proc mc:who:svs:time {{args ""}} {
   global mc_who
-  catch {control [connect [lindex $mc_who(svs:server) 0] [lindex $mc_who(svs:server) 1]] mc:who:svs:interface}
+  if {[catch {socket -async $mc_who(svs:server) $mc_who(svs:port)} sid]} {;\
+   putlog "SVS Error\[$mc_who(svs:script)/$mc_who(svs:version)\]:  $sid"
+   return 1
+  }
+  fconfigure $sid -blocking 0 -buffering line
+  set tout [after 60000 "mc:who:svs:interface $sid timeout"]
+  fileevent $sid readable "mc:who:svs:interface $sid $tout"
+  puts $sid "GET $mc_who(svs:get)?$mc_who(svs:query) HTTP/1.0\
+           \nHost: $mc_who(svs:server)\n"
+  flush $sid
  }
 }
-proc mc:who:svs:interface {idx args} {
- global mc_who;set args [join $args]
- switch -- [lindex $args 0] {
-  "" {return 1}
-  000 {putdcc $idx q}
-  002 {putdcc $idx [lindex $mc_who(svs:script) 0]}
-  003 {
-   set args [lrange $args 1 e]
-   if {[lindex $args 0] != [lindex $mc_who(svs:script) 0]} {return 0}
-   putdcc $idx q
-   if {[lindex $args 1] > [lindex $mc_who(svs:script) 1]} {
-    set note [mc:who:replace [lindex $args 7] "%0 {[lindex $args 0]} %1 {[lindex $args 1]} %2 {[lindex $args 2]}"]
-    set note [mc:who:replace $note "%3 {[lindex $args 3]} %4 {[lindex $args 4]} %5 {[lindex $args 5]}"]
-    set note [mc:who:replace $note "%6 {[lindex $args 6]} %8 {[lindex $args 8]} %version {$mc_who(version)}"]
-    set note [mc:who:replace $note "%9 {[lindex $args 9]} %10 {[lindex $args 10]} %11 {[lindex $args 11]}"]
-    set note [mc:who:replace $note "%12 {[lindex $args 12]} %13 {[lindex $args 13]} %14 {[lindex $args 14]}"]
-    set note [mc:who:replace $note "%15 {[lindex $args 15]} %16 {[lindex $args 16]} %17 {[lindex $args 17]}"]
-    set note [mc:who:replace $note "%18 {[lindex $args 18]} %19 {[lindex $args 19]} %20 {[lindex $args 20]}"]
-    foreach notify [join [split $mc_who(svs:notify) ",;"]] {
-     set outnote [mc:who:replace $note "%nick {$notify}"]
-     if {[string match "*$outnote*" "[notes $notify -[notes $notify]]"]} {
-      set cont 0
-      foreach unote [notes $notify -[notes $notify]] {
-       if {$outnote == [lindex $unote 2]} {set cont 1;break}
-      };if {$cont} {continue}
-     }
-     switch -- [sendnote SVS $notify $outnote] {
-      0 {
-       if {![validuser $notify]} {set x "invalid user"} else {set x "unknown reason"}
-       putlog "MC SVS for [lindex $mc_bw(svs:script) 0] had some errors updating $notify on current version of script; $x"
+proc mc:who:svs:interface {sid tout} {
+ global mc_who
+ if {$tout == "timeout"} {
+  putlog "SVS Warning\[$mc_who(svs:script)/$mc_who(svs:version)\]:  SVS Server timed out."
+  close $sid
+  return 0
+ }; after cancel $tout
+ set temp 0
+ while {![eof $sid]} {
+  gets $sid get
+  if {$temp < "2"} {
+   if {$get == ""} {incr temp; if {$temp == "1"} {set temp 2}}
+   continue
+  }; if {$get == ""} {continue}
+  switch -- [lindex $get 0] {
+   003 {
+    set reply [lrange $get 1 end]
+    if {[lindex $reply 0] != $mc_who(svs:script)} {
+     putlog "SVS Error\[$mc_who(svs:script)/$mc_who(svs:version)\]:  SVS Server sent wrong info, got [lindex $reply 0]"
+     break   
+    }
+    if {$mc_who(svs:stableonly)} {
+     set temp [string range $mc_who(svs:version) 0 8]999
+    } else {set temp [string range $mc_who(svs:version) 0 11]}
+    if {[lindex $reply 1] > $temp} {
+     set note [lindex $reply 5]
+     regsub -- %0 $note [lindex $reply 0] note
+     regsub -- %1 $note [lindex $reply 1] note
+     regsub -- %2 $note [lindex $reply 2] note
+     regsub -- %3 $note [lindex $reply 3] note
+     regsub -- %4 $note [lindex $reply 4] note
+     regsub -- %version $note $mc_who(version) note
+     foreach to [split $mc_who(svs:notify) ",; "] {
+      if {$to == ""} {continue}
+      regsub -- %nick $note $to outnote
+      if {[string match *$outnote* [set unotes [notes $to -[notes $to]]]]} {
+       set temp 0
+       foreach unote $unotes {
+        if {$outnote == [lindex $unote 2]} {set temp 1; break}
+       }; if {$temp} {continue}
       }
-      3 {putlog "MC SVS for [lindex $mc_bw(svs:script) 0] had some errors updating $notify on current version of script; notebox too full!"}
+      switch -- [sendnote SVS $to $outnote] {
+       0 {
+        if {![validuser $notify]} {set x "invalid user"} else {set x "unknown error"}
+        putlog "SVS Error\[$mc_who(svs:script)/$mc_who(svs:version)\]:  Trying to send note to $to, $x."
+       }
+       3 {putlog "SVS Error\[$mc_who(svs:script)/$mc_who(svs:version)\]:  Trying to send note to $to, notebox too full!"}
+      }
      }
     }
    }
   }
- };return 0
+ }; close $sid
 }
 ## ^
 
-putlog "Who $mc_who(version) by MC_8 loaded."
+putlog "$mc_who(script) $mc_who(version) by MC_8 loaded."

@@ -1,56 +1,65 @@
 ##
-# Who v2.1.2 by MC_8 - Carl M. Gregory <mc8@purehype.net>
+# Who v2.1.3 by MC_8 - Carl M. Gregory <mc8@purehype.net>
 #  This script will only work on eggdrop 1.5.5 or greater.
 #
 # My SVS Website - http://mc.purehype.net:81/
 ##
 
 ##
-# This script will perform 'who' lookup via IRC then display it's results.  If
-# there are no matches found it will try and DNS your entry then 'who' that
-# as well.
+# This script will perform 'who' lookup via IRC then display it's
+# results.  If there are no matches found it will try and DNS your
+# entry then 'who' that as well.
 ##
 
 ##
-# HISTORY
+# HISTORY  ( <Fixed by> - [Found by] - <Info> )
 ##
+# v2.1.3 (01.13.02)
+#  MC_8 - - Added error catching system, gives a good debug for bug
+#           reports.
+#  MC_8 - - Adjusted some minor things, possibly causing bugs in older
+#           tcl versions.
+#  MC_8 - - Updated the replace procedure.
+#
 # v2.1.2 (11.17.01)
-#  MC_8 - Updated SVS from v1.3 to v2.0.
+#  MC_8 - - Updated SVS from v1.3 to v2.0.
 #
 # v2.1.1 (11.10.01)
-#  MC_8 - Fixed special character handeling when being dns'd after not
-#         being found by a server WHO.
+#  MC_8 -        - Fixed special character handeling when being dns'd
+#                  after not being found by a server WHO.
 #  MC_8 - fudded - Script was reacting to wild card triggers (ie, a *).
 #
 # v2.1 (11.07.01)
-#  MC_8 - Updated SVS from v1.1 to v1.3.
-#  MC_8 - Recoded the whole script.  It was old and ugly.
+#  MC_8 - - Updated SVS from v1.1 to v1.3.
+#  MC_8 - - Recoded the whole script.  It was old and ugly.
 #
 # v2.0.1 (03.17.01)
-#  MC_8 - Liar - The bot was repsonding to * and ? as if it were a trigger as well, fixed.
-#  MC_8 - Fixed problem with returning resolved information, problem with upper cased
-#         characters within hostnames.
-#  MC_8 - Fixed, `Tcl error [mc:who:trigger]: bad option "tolwoer": must be bytelength,
-#         compare, equal, first, index, is, last, length, map, match, range, repeat,
-#         replace, tolower, toupper, totitle, trim, trimleft, trimright, wordend, or
-#         wordstart`.
+#  MC_8 - Liar - The bot was repsonding to * and ? as if it were a
+#                trigger as well, fixed.
+#  MC_8 -      - Fixed problem with returning resolved information,
+#                problem with upper cased characters within hostnames.
+#  MC_8 -      - Fixed, 'Tcl error [mc:who:trigger]: bad option 
+#                "tolwoer": must be bytelength, compare, equal, first,
+#                index, is, last, length, map, match, range, repeat,
+#                replace, tolower, toupper, totitle, trim, trimleft,
+#                trimright, wordend, or wordstart'.
 #
 # v2.0 (02.02.01)
-#  MC_8 - Added ability to specify what channels this script is to be active on.
-#         It explains how to do this feature below in the settings section of this
-#         script.
-#  MC_8 - Added SVS
-#  MC_8 - Added ignore flag'd users option.
-#  MC_8 - This script will work on eggdrop 1.5.1 or above only.
-#  MC_8 - Can perform many who's simultaneously.
-#  MC_8 - Script uses egdrop's internal dns lookup module, better pervents
-#         the bot lagging up.
-#  MC_8 - Added ability to specify more than just 1 trigger.
-#  MC_8 - Made script independent of moretools.
+#  MC_8 - - Added ability to specify what channels this script is to be
+#           active on.  It explains how to do this feature below in the
+#           settings section of this script.
+#  MC_8 - - Added SVS
+#  MC_8 - - Added ignore flag'd users option.
+#  MC_8 - - This script will work on eggdrop 1.5.1 or above only.
+#  MC_8 - - Can perform many who's simultaneously.
+#  MC_8 - - Script uses egdrop's internal dns lookup module, better
+#           pervents the bot lagging up.
+#  MC_8 - - Added ability to specify more than just 1 trigger.
+#  MC_8 - - Made script independent of moretools.
 #
 # v1.2  (12.31.99)
-#  MC_8 - Fixed the " ***WHO [!who] NOT loaded, please load moretools.tcl v1.0.1+ "
-#         even though it was loaded.
+#  MC_8 - - Fixed the " ***WHO [!who] NOT loaded, please load
+#           moretools.tcl v1.0.1+ " even though it was loaded.
 #
 # v1.0-1.1  (??.??.99)
 #  MC_8 - AZ0R0S - Inital releases.
@@ -61,29 +70,28 @@
 ##
 
 # Note:
-#  There is one setting you set from dcc chat with the bot using .chanset.
+#  There is one setting you set from dcc chat with the bot using
+#  .chanset.
 #   <+/->mc.who  Setting this to +mc.who on the specific channel will 
 #                enable the channel to to use this script.
 #
 #  Example from dcc chat with the bot:
 #   .chanset #channel +mc.who
 
-# What trigger(s) do you want this script to function on?
-# Seperate each different trigger with a space.
+# What trigger(s) do you want this script to function on?  Seperate 
+# each different trigger with a space.
 set mc_who(trigger) "!who `who -who"
 
-# What flaged users should have access to the commands?
-# Set to "-|-" to allow anyone to access the commands.
-# Set to "" for registered users only (users added to the 
-#  bot via .+user or .adduser.
-# Flag structure is <global>|<channel>
+# What flaged users should have access to the commands?  Set to "-|-" 
+# to allow anyone to access the commands.  Set to "" for registered 
+# users only (users added to the bot via .+user or .adduser).  Flag 
+# structure is <global>|<channel>
 set mc_who(flags) "ovs|ovs"
 
-# What flaged users should NOT have access to the commands?
-# Set to "-|-" to ignore registered users (users added to
-#  the bot via .+user or .adduser.
-# Set to "" to turn this feature off.
-# Flag structur is <global>|<channel>
+# What flaged users should NOT have access to the commands?  Set to 
+# "-|-" to ignore registered users (users added to the bot via .+user 
+# or .adduser).  Set to "" to turn this feature off.  Flag structur is 
+# <global>|<channel>
 set mc_who(ign:flags) "kb|kb"
 
 # What's the max. limit of results you want to post?
@@ -97,11 +105,11 @@ set mc_who(meth) 0
 
 
 ## MC SVS (Script Version Service) v2.0 ##
-# Do you want the bot to connection to MC_8's SVS to see if there are newer versions
-# of this script avilable?  It will only tell you -- It's up to you to get the newest
-# version (I decided not to auto update the code, there may be new features in the
-# newest script that may require your attention).
-# 0=no/1=yes
+# [0=no/1=yes] Do you want the bot to connection to MC_8's SVS to see 
+# if there are newer versions of this script avilable?  It will only 
+# tell you -- It's up to you to get the newest version (I decided not 
+# to auto update the code, there may be new features in the newest 
+# script that may require your attention).
 set mc_who(svs:enabled) 1
 
 # Once a day the script will check with the SVS -- this specifies when
@@ -113,14 +121,13 @@ set mc_who(svs:enabled) 1
 #  set mc_who(svs:check) 23  ;#This is at 11pm
 set mc_who(svs:check) 3
 
-# Upon finding a newer version of this script, who do you want this script
-# to send a note to telling them of this newer version?
-# If more than 1 user is to be notified, seperate each user with a
-# ' ' (space).
+# Upon finding a newer version of this script, who do you want this 
+# script to send a note to telling them of this newer version?  If more 
+# than 1 user is to be notified, seperate each user with a ' ' (space).
 set mc_who(svs:notify) "MC_8"
 
-# Do you want even beta version notified to whomever you have set?  Or just
-# stable releases of the script?
+# Do you want even beta version notified to whomever you have set?  Or 
+# just stable releases of the script?
 #  0 = Tell me about all version, even beta versions.
 #  1 = Just tell me about new stable versions.
 set mc_who(svs:stableonly) 0
@@ -146,9 +153,9 @@ set mc_who(lang:005) "Too many lines in the output, restrict your query."
 ##
 
 set mc_who(script)      "Who"
-set mc_who(version)     "v2.1.2"
+set mc_who(version)     "v2.1.3"
 set mc_who(svs:script)  "who"
-set mc_who(svs:version) "002001002000"
+set mc_who(svs:version) "002001003000"
 set mc_who(svs:server)  "mc.purehype.net"
 set mc_who(svs:port)    "81"
 set mc_who(svs:get)     "/"
@@ -163,6 +170,26 @@ if {$numversion < "1050500"} {
 
 setudef flag mc.who
 
+proc mc:who:error {bindproc error {arg ""}} {
+ global mc_who version lastbind
+ putlog "Error in script $mc_who(script) $mc_who(version)."
+ putlog "       Last bind: $lastbind"
+ putlog "       Procedure: $bindproc"
+ putlog "            Args: $arg"
+ putlog " Eggdrop version: $version"
+ putlog "     TCL version: [info tclversion]"
+ putlog "*** Please email this bug information to MC_8, his latest"
+ putlog "*** email address should be on http://mc.purehype.net:81/"
+ putlog "*** Please include the next line in the email as well."
+ error $error
+}
+
+proc mc:who:errchk {command arg} {
+ if {[catch {eval $command $arg} return]} {
+  mc:who:error $command $return $arg; return 0
+ }; return $return
+}
+
 set temp 0
 foreach mod [modules] {if {[lindex $mod 0] == "dns"} {set temp 1 ; break}}
 if {!$temp} {loadmodule dns}
@@ -175,6 +202,9 @@ if {!$temp} {
 
 bind pubm - * mc:who:pubm
 proc mc:who:pubm {nick uhost hand chan arg} {
+ return [mc:who:errchk mc:who:pubm_ [list $nick $uhost $hand $chan $arg]]
+}
+proc mc:who:pubm_ {nick uhost hand chan arg} {
  global mc_who
  scan $arg "%s %s" cmd who
  if {(![mc:who:chanflag $chan mc.who]) ||
@@ -200,6 +230,9 @@ proc mc:who:pubm {nick uhost hand chan arg} {
 
 bind evnt - init-server mc:who:evnt
 proc mc:who:evnt {type} {
+ return [mc:who:errchk mc:who:evnt_ [list $type]]
+}
+proc mc:who:evnt_ {type} {
  global mc_who
  foreach array [array names mc_who] {
   if {[regexp -- {^:} $array]} {unset mc_who($array)}
@@ -209,14 +242,15 @@ proc mc:who:evnt {type} {
 bind raw - 315 mc:who:raw
 bind raw - 352 mc:who:raw
 proc mc:who:raw {server num arg} {
+ return [mc:who:errchk mc:who:raw_ [list $server $num $arg]]
+}
+proc mc:who:raw_ {server num arg} {
  global mc_who
  switch -- $num {
   352 {
-   scan $arg "%s %s %s %s %s %s %s %s %\[^\0\]\0" a chan ident host server nick status hop name
-   if {[string index [string tolower $status] 0] == "g"} {set away "Away"} \
-   else {set away "Not Away"}
-   if {[string index [string tolower $status] 1] == "*"} {set oper "IRC Operator"} \
-   else {set oper "Regular User"}
+   scan "$arg\015" "%s %s %s %s %s %s %s %s %\[^\015\]\015" a chan ident host server nick status hop name
+   set away "Not Away"; if {[string index [string tolower $status] 0] == "g"} {set away "Away"}
+   set oper "Regular User"; if {[string index [string tolower $status] 1] == "*"} {set oper "IRC Operator"}
    lappend mc_who(:found:) [list $nick $ident $host $away $oper]
   }
   315 {
@@ -232,12 +266,10 @@ proc mc:who:raw {server num arg} {
 
 proc mc:who:dnslookup {ip host status who} {
  global mc_who
- if {!$status} {mc:who:display $who;return}
+ if {!$status} {mc:who:display $who; return}
  if {$who == $ip} {set resolve $host;set res_t host} \
- else {set resolve $ip;set res_t ip}
- if {![info exists mc_who(:dns:[string tolower $who]:)]} {
-  set mc_who(:dns:[string tolower $who]:) ""
- }
+ else {set resolve $ip; set res_t ip}
+ if {![info exists mc_who(:dns:[string tolower $who]:)]} {set mc_who(:dns:[string tolower $who]:) ""}
  if {[lsearch -exact $mc_who(:dns:[string tolower $who]:) [string tolower $resolve]] != "-1"} {
   mc:who:display $who; return 1
  }
@@ -298,6 +330,7 @@ proc mc:who:display {who} {
  catch {unset mc_who(:posted:[string tolower $who]:)}
 }
 
+# v1.0
 proc mc:who:chanflag {channel flag} {
  if {![validchan $channel]} {return -code error "no such channel record"}
  set list [channel info $channel]
@@ -311,12 +344,12 @@ proc mc:who:chanflag {channel flag} {
   } elseif {[string index $info 0] == "+"} {return 1} else {return 2}
  };return -1
 }
-
-proc mc:who:replace {string subs} {
- if {[llength $subs] == "1"} {set subs [lindex $subs 0]}
+# v1.0
+proc mc:who:replace {text subs} {
+ if {![catch {string map -nocase $subs $text} output]} {return $output}
  for {set i 0} {[lindex $subs $i] != ""} {incr i 2} {
-  regsub -all -- [lindex $subs $i] $string [lindex $subs [expr $i+1]] string
- };return $string
+  regsub -all -- [lindex $subs $i] $text [lindex $subs [expr $i+1]] text
+ }; return $text
 }
 
 ## SVS v2.0

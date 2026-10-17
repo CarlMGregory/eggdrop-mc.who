@@ -1,17 +1,30 @@
 ##
-# Who 2.0
-#  by MC_8@undernet - Carl M. Gregory <gregory@worldinter.net>
-#  made for AZ0R0S@undernet
+# Who v2.0.1 by MC_8@undernet - Carl M. Gregory <gregory@worldinter.net>
+#  This script will only work on eggdrop 1.5+ series.
+#
+# If you have any questions/comments/idea/suggestions/bug reports, please email me.
 #
 # My SVS Website - http://mc.purehype.net/
 ##
 
 ##
-# This script will perform 'who' lookup via IRC then display it's results.
+# This script will perform 'who' lookup via IRC then display it's results.  If
+# there are no matches found it will try and DNS your entry then 'who' that
+# as well.
 ##
 
 ##
 # HISTORY
+##
+# v2.0.1 (03.17.01)
+#  MC_8 - Liar - The bot was repsonding to * and ? as if it were a trigger as well, fixed.
+#  MC_8 - Fixed problem with returning resolved information, problem with upper cased
+#         characters within hostnames.
+#  MC_8 - Fixed, `Tcl error [mc:az:trigger]: bad option "tolwoer": must be bytelength,
+#         compare, equal, first, index, is, last, length, map, match, range, repeat,
+#         replace, tolower, toupper, totitle, trim, trimleft, trimright, wordend, or
+#         wordstart`.
+#
 # v2.0 (02.02.01)
 #  MC_8 - Added ability to specify what channels this script is to be active on.
 #         It explains how to do this feature below in the settings section of this
@@ -46,7 +59,7 @@
 
 # What trigger(s) do you want this script to function on?
 # Seperate each different trigger with a space.
-set mc_az(trigger) "!who `who -who who"
+set mc_az(trigger) "!who `who -who"
 
 # What flaged users should have access to the commands?
 # Set it to -|- to allow anyone to access the commands.
@@ -91,8 +104,8 @@ set mc_az(svs:notify) "MC_8"
 
 
 #### Coding below...
-set mc_az(version) v2.0
-set mc_az(svs:script) "who 002000000000"
+set mc_az(version) v2.0.1
+set mc_az(svs:script) "who 002000001000"
 set mc_az(svs:server) "mc.purehype.net 8085"
 
 if {$numversion < "1050100"} {
@@ -117,7 +130,11 @@ proc mc:az:trigger {nick uhost hand chan args} {
  }
  if {![matchattr $hand $mc_az(flags) $chan] && ($mc_az(flags) != "-|-")} {return}
  if {[matchattr $hand $mc_az(ign:flags) $chan]} {return}
- if {![string match "* [lindex $args 0] *" " $mc_az(trigger) "]} {return}
+ set i 1
+ foreach trigger $mc_az(trigger) {
+  if {[string tolower [lindex $args 0]] == [string tolower $trigger]} {set i 0;break}
+ }
+ if {$i} {return}
  if {[lindex $args 1] == "0"} {set args "[lindex $args 0] * [lrange $args 2 e]"}
  if {[info exists mc_az(![lindex $args 1])]} {
   set mc_az(![lindex $args 1]) "$mc_az(![lindex $args 1]) $nick@$chan"
@@ -174,7 +191,9 @@ proc mc:az:who {server num info} {
 proc mc:az:dnslookup {ip host status iphost} {
  global mc_az
  if {$status} {
-  if {$iphost == $ip} {set resolve $host;set horip hostname} {set resolve $ip;set horip ip}
+  if {$iphost == $ip} {set resolve [string tolower $host];set horip hostname} {
+   set resolve $ip;set horip ip
+  }
   set mc_az(!$resolve) $mc_az(!$iphost)
   unset mc_az(!$iphost)
   foreach post $mc_az(!$resolve) {
